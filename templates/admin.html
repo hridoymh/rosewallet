@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <style>
+        /* Optional: Custom styles can be added here */
+    </style>
+    <script>
+        var stat = [`<span class="text-yellow-500 font-semibold">Pending</span>`, `<span class="text-green-500 font-semibold">Confirmed</span>`, `<span class="text-red-500 font-semibold">Rejected</span>`];
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            const day = date.getDate();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${hours}:${minutes} ${ampm} ${day}.${month}.${year}`;
+        }
+
+        if(localStorage.getItem('adminToken')) {
+            fetchPurchaseRequests();
+            fetchItems();
+        }
+
+        function fetchPurchaseRequests() {
+            $.ajax({
+                url: "/admin/purchase-requests",
+                type: 'GET',
+                headers: {"Authorization": "Bearer " + localStorage.getItem('adminToken')},
+                success: function(res) {
+                    $("#purchaseRequestsList").empty();
+                    res.forEach(request => {
+                        $("#purchaseRequestsList").append(`
+                            <div class="border border-gray-300 p-4 rounded-lg">
+                                <p class="text-gray-700"><span class="font-semibold">Item:</span> ${request.itemName}</p>
+                                <p class="text-gray-700"><span class="font-semibold">Quantity:</span> ${request.quantity}</p>
+                                <p class="text-gray-700"><span class="font-semibold">Total Price:</span> ${request.total} Tokens</p>
+                                <p class="text-gray-700"><span class="font-semibold">Status:</span> ${request.status === "pending" ? stat[0] : request.status === "confirmed" ? stat[1] : stat[2]}</p>
+                                <button onclick="confirmRequest('${request.id}')" class="bg-green-600 text-white p-2 rounded mt-2 hover:bg-green-700 ${request.status !== 'pending' ? 'opacity-50 cursor-not-allowed' : ''}" ${request.status !== 'pending' ? 'disabled' : ''}>Confirm Request</button>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(err) {
+                    console.log("Error:", err);
+                }
+            });
+        }
+
+        function confirmRequest(requestId) {
+            $.ajax({
+                url: `/admin/confirm-request/${requestId}`,
+                type: 'POST',
+                headers: {"Authorization": "Bearer " + localStorage.getItem('adminToken')},
+                success: function(res) {
+                    alert("Request confirmed successfully!");
+                    fetchPurchaseRequests();
+                },
+                error: function(err) {
+                    console.error("Error confirming request:", err);
+                }
+            });
+        }
+
+        function deleteitem(requestId) {
+            $.ajax({
+                url: `/admin/deleteitem/${requestId}`,
+                type: 'POST',
+                headers: {"Authorization": "Bearer " + localStorage.getItem('adminToken')},
+                success: function(res) {
+                    alert("Item deleted successfully!");
+                    fetchItems();
+                },
+                error: function(err) {
+                    console.error("Error confirming request:", err);
+                }
+            });
+        }
+        
+        function addItem(event) {
+            event.preventDefault();
+            const name = $("#itemName").val();
+            const price = $("#itemPrice").val();
+            const quantity = $("#itemQuantity").val();
+            $.ajax({
+                url: "/admin/item",
+                type: 'POST',
+                headers: {"Authorization": "Bearer " + localStorage.getItem('adminToken')},
+                contentType: 'application/json',
+                data: JSON.stringify({ name, price, quantity }),
+                success: function(res) {
+                    alert("Item added successfully!");
+                    $("#addItemForm")[0].reset();
+                    fetchItems();
+                },
+                error: function(err) {
+                    console.error("Error adding item:", err);
+                }
+            });
+        }
+
+        function fetchItems() {
+            $.ajax({
+                url: "/admin/items",
+                type: 'GET',
+                headers: {"Authorization": "Bearer " + localStorage.getItem('adminToken')},
+                success: function(res) {
+                    $("#itemsList").empty();
+                    res.forEach(item => {
+                        $("#itemsList").append(`
+                            <div class="border border-gray-300 p-4 rounded-lg">
+                                <h3 class="text-lg font-semibold">${item.name}</h3>
+                                <p class="text-gray-700">Price: ${item.price} Tokens</p>
+                                <p class="text-gray-700">Quantity: ${item.quantity}</p>
+                                <button onclick="deleteitem(${item.id})" class="bg-red-600 text-white p-2 rounded mt-2 hover:bg-red-700">Delete</button>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(err) {
+                    console.log("Error:", err);
+                }
+            });
+        }
+
+        function generateTokens(event) {
+            event.preventDefault();
+            const userId = $("#userId").val();
+            const amount = $("#tokenAmount").val();
+            $.ajax({
+                url: "/admin/generate-tokens",
+                type: 'POST',
+                headers: {"Authorization": "Bearer " + localStorage.getItem('adminToken')},
+                contentType: 'application/json',
+                data: JSON.stringify({ userId, amount }),
+                success: function(res) {
+                    alert("Tokens generated successfully!");
+                    $("#generateTokensForm")[0].reset();
+                },
+                error: function(err) {
+                    console.error("Error generating tokens:", err);
+                }
+            });
+        }
+        function logout(){
+            localStorage.removeItem('adminToken');
+            window.location.href = '/auth/login/admin'
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <header class="bg-blue-600 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+        <button onclick="logout()" class="text-sm mt-2">Logout</button>
+    </header>
+
+    <main class="flex-grow p-4">
+        <!-- Generate Tokens -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Generate Tokens</h2>
+            <form id="generateTokensForm" onsubmit="generateTokens(event)">
+                <label class="block mb-2 text-gray-700">User ID:</label>
+                <input type="text" id="userId" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                <label class="block mb-2 text-gray-700">Token Amount:</label>
+                <input type="number" id="tokenAmount" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Generate Tokens</button>
+            </form>
+        </section>
+
+        <!-- View and Confirm Purchase Requests -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Purchase Requests</h2>
+            <div id="purchaseRequestsList" class="space-y-4"></div>
+        </section>
+
+        <!-- Add Item -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Add Item</h2>
+            <form id="addItemForm" onsubmit="addItem(event)">
+                <label class="block mb-2 text-gray-700">Item Name:</label>
+                <input type="text" id="itemName" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                <label class="block mb-2 text-gray-700">Price:</label>
+                <input type="number" id="itemPrice" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                <label class="block mb-2 text-gray-700">Quantity:</label>
+                <input type="number" id="itemQuantity" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Add Item</button>
+            </form>
+        </section>
+
+        <!-- Items List -->
+        <section class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Items List</h2>
+            <div id="itemsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
+</body>
+</html>

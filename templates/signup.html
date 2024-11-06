@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Optional: Custom styles can be added here */
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 text-center flex flex-col">
+        <h1 class="text-2xl font-bold">User Dashboard</h1>
+        <div class="text-sm mt-2">
+            <span id="userName">John Doe</span> | <span id="userUsername">@johndoe</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4">
+        
+        <!-- Token Sending Form -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Send Tokens</h2>
+            <form id="signupform">
+                <label for="name" class="block mb-2 text-gray-700">Name:</label>
+                <input type="text" id="name" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                
+                <label for="username" class="block mb-2 text-gray-700">Username:</label>
+                <input type="text" id="username" required class="border border-gray-300 p-2 rounded w-full mb-4">
+
+                <label for="email" class="block mb-2 text-gray-700">Email:</label>
+                <input type="email" id="email" required class="border border-gray-300 p-2 rounded w-full mb-4">
+
+                <label for="password" class="block mb-2 text-gray-700">Password:</label>
+                <input type="password" id="password" required class="border border-gray-300 p-2 rounded w-full mb-4">
+
+                
+
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Send Tokens</button>
+            </form>
+        </section>
+
+        
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
+</body>
+<script>
+    if(localStorage.getItem('loginToken')){
+        $.ajax({
+            url: "/user/me",
+            type: 'GET',
+            // Fetch the stored token from localStorage and set in the header
+            headers: {"Authorization": "Bearer " + localStorage.getItem('loginToken')},
+            success:function(res){
+                console.log(res)
+                window.location.href='/user/home'
+            },
+            error: function(err){
+                localStorage.removeItem('loginToken')
+            }
+        });
+    }
+    
+$("#signupform").submit(async function(e){
+    e.preventDefault();
+    let name = $("#name").val();
+    let username = $("#username").val();
+    let email = $("#email").val();
+    let pass = $("#password").val();
+
+    $.ajax({
+        url: '/auth/signup', // URL of your login API endpoint
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            username: $('#username').val(), // get username input value
+            password: $('#pass').val()  // get password input value
+        }),
+        success: function(response) {
+            // Handle successful login
+            console.log('Login successful:', response);
+            var token = response.token;
+            localStorage.setItem('loginToken', token);
+            // Redirect or show a success message
+            window.location.href='/user/home'
+        },
+        error: function(xhr, status, error) {
+            // Handle login error
+            console.log('Login failed:', error);
+            alert('Login failed: ' + xhr.responseText);
+        }
+    });
+})
+</script>
+</html>

@@ -1,0 +1,95 @@
+### 1. Sign up a new user
+POST http://localhost:3000/auth/signup
+Content-Type: application/json
+
+{
+    "name": "MH",
+    "username": "mh",
+    "email": "mh@example.com",
+    "password": "password123",
+    "role": "user"
+}
+
+### 2. Log in as the user
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "username": "hridoy",
+    "password": "password123"
+}
+
+
+
+### 3. Get balance (replace `{{token}}` with the token received in the login response)
+post http://localhost:3000/user/purchase-requests
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwODY3MDI5LCJleHAiOjE3MzA4NzA2Mjl9.zjNiO8P5KXz4OuXa_ehepgn9Eqm-S1nYMe7TdmV4mTM
+{
+    "itemId":1,
+    "quantity":1
+}
+
+### 4. Send tokens to another user (replace `{{token}}`)
+POST http://localhost:3000/user/send-money
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwODY3MDI5LCJleHAiOjE3MzA4NzA2Mjl9.zjNiO8P5KXz4OuXa_ehepgn9Eqm-S1nYMe7TdmV4mTM
+
+{
+    "recipientId": "mh",
+    "amount": 10
+}
+
+### 5. Admin adds a new item (replace `{{adminToken}}` with admin token)
+get http://localhost:3000/user/items
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwODY3MDI5LCJleHAiOjE3MzA4NzA2Mjl9.zjNiO8P5KXz4OuXa_ehepgn9Eqm-S1nYMe7TdmV4mTM
+
+{
+    "name": "Laptop",
+    "price": 300,
+    "quantity": 10
+}
+
+### 6. Buy an item (replace `{{token}}`)
+POST http://localhost:3000/user/buy
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwMzgzNDgxLCJleHAiOjE3MzAzODcwODF9.uVxQVy90V7REDDniadW3T4DH1Jj0iWS6dVLRXJ6imYo
+
+{
+    "itemId": 1,  
+    "quantity": 1
+}
+###
+get http://localhost:3000/user/me
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwMzgzNDgxLCJleHAiOjE3MzAzODcwODF9.uVxQVy90V7REDDniadW3T4DH1Jj0iWS6dVLRXJ6imYo
+
+
+###
+get http://localhost:3000/admin/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwMzgzNDgxLCJleHAiOjE3MzAzODcwODF9.uVxQVy90V7REDDniadW3T4DH1Jj0iWS6dVLRXJ6imYo
+
+
+###
+post http://localhost:3000/admin/users/1/generate-tokens
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwNTI4NjI3LCJleHAiOjE3MzA1MzIyMjd9.1JXSfaXhIMAbN7t1EDoME7ErvC48L1YTRCgxg1EEBIg
+
+{
+    "amount": 500
+}
+
+
+###
+post http://localhost:3000/admin/additem
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwNTI4NjI3LCJleHAiOjE3MzA1MzIyMjd9.1JXSfaXhIMAbN7t1EDoME7ErvC48L1YTRCgxg1EEBIg
+
+{
+    "name": "test item 1",
+    "price": 12,
+    "quantity":3
+}
+

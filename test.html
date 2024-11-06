@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Optional: Custom styles can be added here */
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">User Dashboard</h1>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4">
+        <!-- Token Sending Form -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Send Tokens</h2>
+            <form id="sendMoneyForm">
+                <label for="recipientId" class="block mb-2 text-gray-700">Recipient ID:</label>
+                <input type="number" id="recipientId" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                
+                <label for="amount" class="block mb-2 text-gray-700">Amount:</label>
+                <input type="number" id="amount" required class="border border-gray-300 p-2 rounded w-full mb-4">
+
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Send Tokens</button>
+            </form>
+        </section>
+
+        <!-- View Purchase Requests -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Your Purchase Requests</h2>
+            <button onclick="fetchPurchaseRequests()" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">View Requests</button>
+            <div id="purchaseRequestsList" class="mt-4"></div>
+        </section>
+
+        <!-- View Transactions -->
+        <section class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Your Transactions</h2>
+            <button onclick="fetchTransactions()" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">View Transactions</button>
+            <div id="transactionsList" class="mt-4"></div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
+
+    
+</body>
+</html>

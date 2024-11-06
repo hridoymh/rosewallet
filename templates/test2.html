@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        /* Optional: Custom styles can be added here */
+    </style>
+    <script>
+        var user ;
+        var trxs;
+        var stat = [`<span class="text-yellow-500 font-semibold">Pending</span>`,`<span class="text-green-500 font-semibold">Confirmed</span>`,`<span class="text-red-500 font-semibold">Rejected</span>`]
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+
+            // Get hours and minutes
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+
+            // Determine AM/PM
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12; // Convert to 12-hour format, with 12 for midnight/noon
+
+            // Get day, month, and year
+            const day = date.getDate();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-indexed
+            const year = date.getFullYear();
+
+            // Combine into final format
+            return `${hours}:${minutes} ${ampm} ${day}.${month}.${year}`;
+        }
+
+        if(localStorage.getItem('loginToken')){
+            $.ajax({
+                url: "/user/me",
+                type: 'GET',
+                // Fetch the stored token from localStorage and set in the header
+                headers: {"Authorization": "Bearer " + localStorage.getItem('loginToken')},
+                success:function(res){
+                    user = res;
+                    $("#userName").text(res.name);
+                    $("#userUsername").text('@'+res.username);
+                    $("#tokenbal").text(res.tokenBalance);
+                    
+                },
+                error: function(err){
+                    localStorage.removeItem('loginToken')
+                    window.location.href = "/auth/login/page"
+                }
+            });
+
+            $.ajax({
+                url: "/user/items",
+                type: 'GET',
+                // Fetch the stored token from localStorage and set in the header
+                headers: {"Authorization": "Bearer " + localStorage.getItem('loginToken')},
+                success:function(res){
+                    res.forEach(i=>{
+                        $('#items').append(`
+                        <div class="border border-gray-300 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold">${i.name}</h3>
+                            <p class="text-gray-700">Price: ${i.price} Tokens</p>
+                            <p class="text-gray-700">Quantity: ${i.quantity}</p>
+                            <button class="buyi bg-blue-600 text-white p-2 rounded mt-2 hover:bg-blue-700" iid="${i.id}">Buy Item</button>
+                        </div>
+                        `)
+                    })                    
+                    
+                },
+                error: function(err){
+                    localStorage.removeItem('loginToken')
+                }
+            });
+            
+            
+        }
+        function fetchTransactions(){
+            $.ajax({
+                url: "/user/trx/me",
+                type: 'GET',
+                // Fetch the stored token from localStorage and set in the header
+                headers: {"Authorization": "Bearer " + localStorage.getItem('loginToken')},
+                success:function(res){
+                    $("#transactionsList").empty();
+                    trxs = res;
+                    trxs.forEach(i => {
+                        const jsons = JSON.parse(i.description);
+                        $("#transactionsList").append(`
+                        <div class="border border-gray-300 p-4 rounded-lg">
+                            <p class="text-gray-700"><span class="font-semibold">Type:</span> ${jsons.type}</p>
+                            <p class="text-gray-700"><span class="font-semibold">Amount:</span> ${i.amount} Tokens</p>
+                            <p class="text-gray-700"><span class="font-semibold">${jsons.type==="Buy"?"ItemID":"To"}:</span> @${jsons.type==="Buy"?jsons.itemId:json.to}</p>
+                            <p class="text-gray-700"><span class="font-semibold">Date:</span> ${formatTimestamp(i.createdAt)}</p>
+                        </div>
+                        `)
+                    });
+                },
+                error: function(err){
+                    console.log(err)
+                    // localStorage.removeItem('loginToken')
+                }
+            });
+        }
+
+        function fetchPurchaseRequests(){
+            $.ajax({
+                url: "/user/purchase-requests/me",
+                type: 'GET',
+                // Fetch the stored token from localStorage and set in the header
+                headers: {"Authorization": "Bearer " + localStorage.getItem('loginToken')},
+                success:function(res){
+                    trxs = res;
+                    console.log(trxs);
+                    trxs.forEach(i => {
+                        $("#purchaseRequestsList").append(`
+                        <div class="border border-gray-300 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold">${i.itemName}</h3>
+                            <p class="text-gray-700">Quantity: ${i.quantity}</p>
+                            <p class="text-gray-700">Total Price: ${i.total} Tokens</p>
+                            <p class="text-gray-700">Status: ${i.status==="pending"?stat[0]:stat[1]}</p>
+                        </div>
+                        `)
+                    });
+                },
+                error: function(err){
+                    console.log(err)
+                    // localStorage.removeItem('loginToken')
+                }
+            });
+        }
+        $(document).ready(()=>{
+            $(document).on("click",".buyi",(e)=>{
+                const iid = $(e.target).attr("iid");
+                const token = localStorage.getItem('loginToken');
+                
+                $.ajax({
+                    url: "/user/purchase-requests",
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json', 
+                    headers: { "Authorization": "Bearer " + token },
+                    data: JSON.stringify({ itemId: iid, quantity: 1 }),
+                    success: function(res) {
+                        trxs = res;
+                        console.log("Transaction response:", trxs);
+                        location.reload()
+                    },
+                    error: function(err) {
+                        console.error("Error Status:", err.status);
+                        console.error("Error Response:", err.responseText || err.statusText);
+                    }
+                });
+            });
+            $("#sendMoneyForm").submit(function(e){
+                e.preventDefault();
+                const token = localStorage.getItem('loginToken');
+                var rpId = $("#recipientUsername").val()
+                var amount = $("#amount").val();
+
+                $.ajax({
+                    url: "/user/send-money",
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json', 
+                    headers: { "Authorization": "Bearer " + token },
+                    data: JSON.stringify({ recipientId: rpId, amount: amount }),
+                    success: function(res) {
+                        trxs = res;
+                        alert("success")
+                        location.reload()
+                    },
+                    error: function(err) {
+                        console.error("Error Status:", err.status);
+                        console.error("Error Response:", err.responseText || err.statusText);
+                    }
+                });
+            });
+        });
+        function logout(){
+            localStorage.removeItem('loginToken')
+            window.location.href = "/auth/login/page"
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 text-center flex flex-col">
+        <h1 class="text-2xl font-bold">User Dashboard</h1>
+        <div class="text-sm mt-2">
+            <span id="userName">John Doe</span> | <span id="userUsername">@johndoe</span> | <span><button onclick="logout()">logout</button></span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4">
+        <!-- User Balance -->
+        <section class="bg-white shadow-md rounded-lg p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-2">Your Token Balance:</h2>
+            <p class="text-2xl font-bold text-blue-600"><span id="tokenbal">100</span> Tokens</p> <!-- Replace with dynamic value -->
+        </section>
+
+        <!-- Token Sending Form -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Send Tokens</h2>
+            <form id="sendMoneyForm">
+                <label for="recipientUsername" class="block mb-2 text-gray-700">Recipient ID:</label>
+                <input type="text" id="recipientUsername" required class="border border-gray-300 p-2 rounded w-full mb-4">
+                
+                <label for="amount" class="block mb-2 text-gray-700">Amount:</label>
+                <input type="number" id="amount" required class="border border-gray-300 p-2 rounded w-full mb-4">
+
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Send Tokens</button>
+            </form>
+        </section>
+
+        <!-- View Purchase Requests -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Your Purchase Requests</h2>
+            <button onclick="fetchPurchaseRequests()" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700 mb-4">View Requests</button>
+
+            <!-- Demo Purchase Requests List -->
+            <div id="purchaseRequestsList" class="space-y-4">
+                <!-- Purchase Request 1 -->
+                <!-- <div class="border border-gray-300 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold">Item 1</h3>
+                    <p class="text-gray-700">Quantity: 2</p>
+                    <p class="text-gray-700">Total Price: 40 Tokens</p>
+                    <p class="text-gray-700">Status: <span class="text-yellow-500 font-semibold">Pending</span></p>
+                </div> -->
+            </div>
+        </section>
+
+        <!-- View Transactions -->
+        <section class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Your Transactions</h2>
+            <button onclick="fetchTransactions()" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700 mb-4">View Transactions</button>
+            <div id="transactionsList" class="space-y-4">
+                <!-- Demo Transactions -->
+                <!-- <div class="border border-gray-300 p-4 rounded-lg">
+                    <p class="text-gray-700"><span class="font-semibold">Type:</span> Sent</p>
+                    <p class="text-gray-700"><span class="font-semibold">Amount:</span> 20 Tokens</p>
+                    <p class="text-gray-700"><span class="font-semibold">To:</span> @recipientUser</p>
+                    <p class="text-gray-700"><span class="font-semibold">Date:</span> 2024-10-10</p>
+                </div> -->
+                
+            </div>
+        </section>
+
+        <!-- Items for Sale -->
+        <section class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Items for Sale</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="items">
+                <!-- Item 1 -->
+                <!-- <div class="border border-gray-300 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold">Item 1</h3>
+                    <p class="text-gray-700">Price: 20 Tokens</p>
+                    <p class="text-gray-700">Quantity: 5</p>
+                    <button class="bg-blue-600 text-white p-2 rounded mt-2 hover:bg-blue-700">Buy Item</button>
+                </div> -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
+</body>
+</html>
