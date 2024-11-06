@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
+    <title>User Signup</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         /* Optional: Custom styles can be added here */
@@ -12,9 +12,9 @@
 <body class="bg-gray-100 flex flex-col h-screen">
     <!-- Header -->
     <header class="bg-blue-600 text-white p-4 text-center flex flex-col">
-        <h1 class="text-2xl font-bold">User Dashboard</h1>
+        <h1 class="text-2xl font-bold">User Signup</h1>
         <div class="text-sm mt-2">
-            <span id="userName">John Doe</span> | <span id="userUsername">@johndoe</span>
+            <!-- <span id="userName">John Doe</span> | <span id="userUsername">@johndoe</span> -->
         </div>
     </header>
 
@@ -23,7 +23,7 @@
         
         <!-- Token Sending Form -->
         <section class="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Send Tokens</h2>
+            <h2 class="text-xl font-semibold mb-4">Signup</h2>
             <form id="signupform">
                 <label for="name" class="block mb-2 text-gray-700">Name:</label>
                 <input type="text" id="name" required class="border border-gray-300 p-2 rounded w-full mb-4">
@@ -39,7 +39,7 @@
 
                 
 
-                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Send Tokens</button>
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Signup</button>
             </form>
         </section>
 
@@ -79,8 +79,10 @@ $("#signupform").submit(async function(e){
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
-            username: $('#username').val(), // get username input value
-            password: $('#pass').val()  // get password input value
+            name: name, // get username input value
+            username: username, // get username input value
+            email: email,
+            password: pass  // get password input value
         }),
         success: function(response) {
             // Handle successful login
