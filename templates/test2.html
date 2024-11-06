@@ -92,7 +92,7 @@
                         <div class="border border-gray-300 p-4 rounded-lg">
                             <p class="text-gray-700"><span class="font-semibold">Type:</span> ${jsons.type}</p>
                             <p class="text-gray-700"><span class="font-semibold">Amount:</span> ${i.amount} Tokens</p>
-                            <p class="text-gray-700"><span class="font-semibold">${jsons.type==="Buy"?"ItemID":"To"}:</span> @${jsons.type==="Buy"?jsons.itemId:json.to}</p>
+                            <p class="text-gray-700"><span class="font-semibold">${jsons.type==="Buy"?"ItemID":"To"}:</span> @${jsons.type==="Buy"?jsons.itemId:jsons.to}</p>
                             <p class="text-gray-700"><span class="font-semibold">Date:</span> ${formatTimestamp(i.createdAt)}</p>
                         </div>
                         `)
