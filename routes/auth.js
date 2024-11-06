@@ -7,7 +7,7 @@ var path = require('path');
 router.post('/signup', async (req, res) => {
     try {
         const { name, username, email, password, role } = req.body;
-        const userRole = role || 'user'; // Default to 'user' if no role provided
+        const userRole = 'user'; // Default to 'user' if no role provided
         const user = await User.create({ name, username, email, password, role: userRole });
         res.status(201).send({ message: 'User registered successfully' });
     } catch (error) {
